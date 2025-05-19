@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+
+<h2>Редагувати квартиру</h2>
+<form action="/apartments/edit/<%= apartment.id %>" method="POST">
+    <label>Опис:</label><br>
+    <input type="text" name="description" value="<%= apartment.description %>" required><br>
+
+    <label>Власник:</label><br>
+    <input type="text" name="owner" value="<%= apartment.owner %>" required><br>
+
+    <label>Ціна:</label><br>
+    <input type="number" name="price" value="<%= apartment.price %>" required><br>
+
+    <label>Кімнат:</label><br>
+    <input type="number" name="rooms" value="<%= apartment.rooms %>"><br>
+
+    <label>Площа:</label><br>
+    <input type="number" name="size" value="<%= apartment.size %>"><br>
+
+    <label>Розташування:</label><br>
+    <input type="text" name="location" value="<%= apartment.location %>"><br><br>
+
+    <button type="submit">Зберегти</button>
+</form>
+
+<%- include('partials/footer') %>

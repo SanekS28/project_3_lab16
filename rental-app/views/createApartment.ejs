@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+
+<h2>Додати нову квартиру</h2>
+<form action="/apartments/create" method="POST">
+    <label>Опис:</label><br>
+    <input type="text" name="description" required><br>
+
+    <label>Власник:</label><br>
+    <input type="text" name="owner" required><br>
+
+    <label>Ціна:</label><br>
+    <input type="number" name="price" required><br>
+
+    <label>Кількість кімнат:</label><br>
+    <input type="number" name="rooms"><br>
+
+    <label>Площа (м²):</label><br>
+    <input type="number" name="size"><br>
+
+    <label>Розташування:</label><br>
+    <input type="text" name="location"><br><br>
+
+    <button type="submit">Зберегти</button>
+</form>
+
+<%- include('partials/footer') %>

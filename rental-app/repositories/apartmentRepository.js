@@ -1,35 +1,106 @@
-const fs = require('fs');
-const path = require('path');
-const filePath = path.join(__dirname, '../data/apartments.json');
+const pool = require('../db');
 
-// 1. Синхронний ввід-вивід
-function getApartmentsSync() {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
+async function getAllApartments() {
+    const result = await pool.query('SELECT * FROM apartments');
+    return result.rows;
 }
 
-// 2. Callback
-function getApartmentsCallback(callback) {
-    fs.readFile(filePath, 'utf-8', (err, data) => {
-        if (err) return callback(err);
-        callback(null, JSON.parse(data));
-    });
+async function insertApartment(ap) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query(`
+            INSERT INTO apartments (owner, description, rooms, price, location, size)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [ap.owner, ap.description, ap.rooms, ap.price, ap.location, ap.size]);
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
-// 3. Promise
-function getApartmentsPromise() {
-    return fs.promises.readFile(filePath, 'utf-8').then(data => JSON.parse(data));
+async function getApartmentById(id) {
+    const result = await pool.query('SELECT * FROM apartments WHERE id = $1', [id]);
+    return result.rows[0];
 }
 
-// 4. Async/Await
-async function getApartmentsAsync() {
-    const data = await fs.promises.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
+async function updateApartment(id, ap) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query(`
+            UPDATE apartments SET
+                owner = $1,
+                description = $2,
+                rooms = $3,
+                price = $4,
+                location = $5,
+                size = $6
+            WHERE id = $7
+        `, [ap.owner, ap.description, ap.rooms, ap.price, ap.location, ap.size, id]);
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
+async function deleteApartment(id) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM apartments WHERE id = $1', [id]);
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
+async function duplicateApartment(id) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const result = await client.query('SELECT * FROM apartments WHERE id = $1', [id]);
+        const original = result.rows[0];
+
+        if (!original) {
+            throw new Error('not found');
+        }
+
+        await client.query(`
+            INSERT INTO apartments (owner, description, rooms, price, location, size)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+            original.owner,
+            original.description + ' (копія)',
+            original.rooms,
+            original.price,
+            original.location,
+            original.size
+        ]);
+
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 module.exports = {
-    getApartmentsSync,
-    getApartmentsCallback,
-    getApartmentsPromise,
-    getApartmentsAsync
+    getAllApartments,
+    insertApartment,
+    getApartmentById,
+    updateApartment,
+    deleteApartment,
+    duplicateApartment
 };
