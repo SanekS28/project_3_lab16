@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+
+<h1>Квартири в оренду</h1>
+<p>Лабораторна робота №3, ІК-32</p>
+<ul>
+    <% apartments.forEach(ap => { %>
+        <li>
+            <strong><%= ap.description %></strong><br>
+            Власник: <%= ap.owner %><br>
+            Ціна: <%= ap.parameters.price %> грн<br>
+            Кількість кімнат: <%= ap.parameters.rooms %><br>
+            Площа: <%= ap.parameters.size %> м²<br>
+            Район: <%= ap.parameters.location %>
+        </li>
+    <% }) %>
+</ul>
+
+<%- include('partials/footer') %>
