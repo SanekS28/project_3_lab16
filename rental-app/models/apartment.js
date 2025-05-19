@@ -1,9 +1,20 @@
-class Apartment {
-    constructor(id, owner, description, parameters) {
-        this.id = id;
-        this.owner = owner;
-        this.description = description;
-        this.parameters = parameters; // {rooms, price, location, size...}
-    }
-}
-module.exports = Apartment;
+const { DataTypes } = require('sequelize');
+
+module.exports = (sequelize) => {
+    return sequelize.define('Apartment', {
+        owner: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        description: {
+            type: DataTypes.TEXT,
+            allowNull: false
+        },
+        rooms: DataTypes.INTEGER,
+        price: DataTypes.INTEGER,
+        location: DataTypes.STRING,
+        size: DataTypes.INTEGER
+    }, {
+        timestamps: false
+    });
+};

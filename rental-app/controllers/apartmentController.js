@@ -1,10 +1,14 @@
 const service = require('../services/apartmentService');
 
 async function showApartments(req, res) {
-    const apartments = await service.getApartments();
-    const message = req.query.message || null;
-    const error = req.query.error || null;
-    res.render('apartments', { apartments, message, error });
+    try {
+        const apartments = await service.getApartments();
+        const message = req.query.message || null;
+        const error = req.query.error || null;
+        res.render('apartments', { apartments, message, error });
+    } catch (err) {
+        res.status(500).send('Помилка при завантаженні списку: ' + err.message);
+    }
 }
 
 async function renderCreateForm(req, res) {
@@ -12,23 +16,39 @@ async function renderCreateForm(req, res) {
 }
 
 async function createApartment(req, res) {
-    await service.createApartment(req.body);
-    res.redirect('/apartments');
+    try {
+        await service.createApartment(req.body);
+        res.redirect('/apartments');
+    } catch (err) {
+        res.status(500).send('Помилка при створенні: ' + err.message);
+    }
 }
 
 async function renderEditForm(req, res) {
-    const apartment = await service.getApartmentById(req.params.id);
-    res.render('editApartment', { apartment });
+    try {
+        const apartment = await service.getApartmentById(req.params.id);
+        res.render('editApartment', { apartment });
+    } catch (err) {
+        res.status(500).send('Помилка при відкритті форми: ' + err.message);
+    }
 }
 
 async function updateApartment(req, res) {
-    await service.updateApartment(req.params.id, req.body);
-    res.redirect('/apartments');
+    try {
+        await service.updateApartment(req.params.id, req.body);
+        res.redirect('/apartments');
+    } catch (err) {
+        res.status(500).send('Помилка при оновленні: ' + err.message);
+    }
 }
 
 async function deleteApartment(req, res) {
-    await service.deleteApartment(req.params.id);
-    res.redirect('/apartments');
+    try {
+        await service.deleteApartment(req.params.id);
+        res.redirect('/apartments');
+    } catch (err) {
+        res.status(500).send('Помилка при видаленні: ' + err.message);
+    }
 }
 
 async function duplicateApartment(req, res) {

@@ -19,9 +19,20 @@
             <strong><%= ap.description %></strong><br>
             Власник: <%= ap.owner %><br>
             Ціна: <%= ap.price %> грн<br>
-            Кількість кімнат: <%= ap.rooms %><br>
+            Кімнат: <%= ap.rooms %><br>
             Площа: <%= ap.size %> м²<br>
-            Район: <%= ap.location %><br><br>
+            Район: <%= ap.location %><br>
+
+            <% if (ap.Photos && ap.Photos.length > 0) { %>
+                <div style="margin-top: 10px;">
+                    <strong>Фото:</strong><br>
+                    <% ap.Photos.forEach(photo => { %>
+                        <img src="<%= photo.url %>" alt="Фото" width="200" style="margin: 5px;">
+                    <% }) %>
+                </div>
+            <% } %>
+
+            <br>
 
             <form action="/apartments/delete/<%= ap.id %>" method="POST" style="display:inline;">
                 <button type="submit">Видалити</button>

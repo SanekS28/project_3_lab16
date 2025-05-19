@@ -1,98 +1,79 @@
-const pool = require('../db');
+const { Apartment, Photo, sequelize } = require('../models');
 
+// Получить все квартиры с фото
 async function getAllApartments() {
-    const result = await pool.query('SELECT * FROM apartments');
-    return result.rows;
+    return await Apartment.findAll({ include: Photo });
 }
 
-async function insertApartment(ap) {
-    const client = await pool.connect();
+// Создать квартиру (транзакционно)
+async function insertApartment(data) {
+    const transaction = await sequelize.transaction();
     try {
-        await client.query('BEGIN');
-        await client.query(`
-            INSERT INTO apartments (owner, description, rooms, price, location, size)
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `, [ap.owner, ap.description, ap.rooms, ap.price, ap.location, ap.size]);
-        await client.query('COMMIT');
+        await Apartment.create(data, { transaction });
+        await transaction.commit();
     } catch (err) {
-        await client.query('ROLLBACK');
+        await transaction.rollback();
         throw err;
-    } finally {
-        client.release();
     }
 }
 
+// Получить квартиру по ID с фото
 async function getApartmentById(id) {
-    const result = await pool.query('SELECT * FROM apartments WHERE id = $1', [id]);
-    return result.rows[0];
+    return await Apartment.findByPk(id, { include: Photo });
 }
 
-async function updateApartment(id, ap) {
-    const client = await pool.connect();
+// Обновить квартиру (транзакционно)
+async function updateApartment(id, data) {
+    const transaction = await sequelize.transaction();
     try {
-        await client.query('BEGIN');
-        await client.query(`
-            UPDATE apartments SET
-                owner = $1,
-                description = $2,
-                rooms = $3,
-                price = $4,
-                location = $5,
-                size = $6
-            WHERE id = $7
-        `, [ap.owner, ap.description, ap.rooms, ap.price, ap.location, ap.size, id]);
-        await client.query('COMMIT');
+        await Apartment.update(data, { where: { id }, transaction });
+        await transaction.commit();
     } catch (err) {
-        await client.query('ROLLBACK');
+        await transaction.rollback();
         throw err;
-    } finally {
-        client.release();
     }
 }
 
+// Удалить квартиру (транзакционно)
 async function deleteApartment(id) {
-    const client = await pool.connect();
+    const transaction = await sequelize.transaction();
     try {
-        await client.query('BEGIN');
-        await client.query('DELETE FROM apartments WHERE id = $1', [id]);
-        await client.query('COMMIT');
+        await Apartment.destroy({ where: { id }, transaction });
+        await transaction.commit();
     } catch (err) {
-        await client.query('ROLLBACK');
+        await transaction.rollback();
         throw err;
-    } finally {
-        client.release();
     }
 }
 
+// Клонировать квартиру и её фото (транзакционно)
 async function duplicateApartment(id) {
-    const client = await pool.connect();
+    const transaction = await sequelize.transaction();
     try {
-        await client.query('BEGIN');
-        const result = await client.query('SELECT * FROM apartments WHERE id = $1', [id]);
-        const original = result.rows[0];
+        const original = await Apartment.findByPk(id, { include: Photo });
 
-        if (!original) {
-            throw new Error('not found');
+        if (!original) throw new Error('Original apartment not found');
+
+        const clone = await Apartment.create({
+            owner: original.owner,
+            description: original.description + ' (копія)',
+            rooms: original.rooms,
+            price: original.price,
+            location: original.location,
+            size: original.size
+        }, { transaction });
+
+        for (const photo of original.Photos) {
+            await Photo.create({
+                apartmentId: clone.id,
+                url: photo.url
+            }, { transaction });
         }
 
-        await client.query(`
-            INSERT INTO apartments (owner, description, rooms, price, location, size)
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `, [
-            original.owner,
-            original.description + ' (копія)',
-            original.rooms,
-            original.price,
-            original.location,
-            original.size
-        ]);
-
-        await client.query('COMMIT');
+        await transaction.commit();
     } catch (err) {
-        await client.query('ROLLBACK');
+        await transaction.rollback();
         throw err;
-    } finally {
-        client.release();
     }
 }
 
