@@ -9,16 +9,16 @@ router.get('/', async (req, res) => {
 
         const all = await service.getApartments();
 
-        // Фильтрация
         let filtered = all;
         if (location) {
-            filtered = filtered.filter(ap => ap.location.toLowerCase().includes(location.toLowerCase()));
+            filtered = filtered.filter(ap =>
+                ap.location.toLowerCase().includes(location.toLowerCase())
+            );
         }
         if (minPrice) {
             filtered = filtered.filter(ap => ap.price >= parseFloat(minPrice));
         }
 
-        // Пагинация
         const start = (page - 1) * limit;
         const paginated = filtered.slice(start, start + parseInt(limit));
 
@@ -63,10 +63,7 @@ router.post('/', async (req, res) => {
 // PUT /api/apartments/:id
 router.put('/:id', async (req, res) => {
     try {
-        const updated = await service.updateApartment(req.params.id, req.body);
-        if (!updated) {
-            return res.status(404).json({ error: 'Apartment not found' });
-        }
+        await service.updateApartment(req.params.id, req.body);
         res.status(200).json({ message: 'Apartment updated' });
     } catch (err) {
         res.status(500).json({ error: 'Failed to update apartment' });
@@ -76,10 +73,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/apartments/:id
 router.delete('/:id', async (req, res) => {
     try {
-        const deleted = await service.deleteApartment(req.params.id);
-        if (!deleted) {
-            return res.status(404).json({ error: 'Apartment not found' });
-        }
+        await service.deleteApartment(req.params.id);
         res.status(200).json({ message: 'Apartment deleted' });
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete apartment' });
